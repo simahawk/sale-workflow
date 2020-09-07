@@ -102,12 +102,14 @@ class SaleOrderLine(models.Model):
         return product.get_first_packaging_with_multiple_qty(qty)
 
     def write(self, vals):
-        """Auto assign packaging if needed"""
+        # Auto assign packaging if needed
         fields_to_check = ["product_id", "product_uom_qty", "product_uom"]
         if vals.get("product_packaging") or not any(
             fname in vals for fname in fields_to_check
         ):
             return super().write(vals)
+        if self.env.context.get("foo"):
+            import pdb; pdb.set_trace()
         for line in self:
             if line.product_packaging:
                 # don't touch it if set already
@@ -160,7 +162,7 @@ class SaleOrderLine(models.Model):
             else False
         )
         if product and product.sell_only_by_packaging:
-            quantity = vals.get("product_uom_qty")
+            quantity = vals.get("product_uom_qty", 0.0)
             uom = self.env["uom.uom"].browse(vals.get("product_uom"))
             packaging = self._get_product_packaging_having_multiple_qty(
                 product, quantity, uom
